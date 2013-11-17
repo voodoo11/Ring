@@ -7,7 +7,16 @@
 #include <string.h>
 #include "err.h"
 
+
 #define BUF_SIZE 1024
+
+int sign(char c) {
+	if(c == '+' || c == '-' || c == '*' || c == '/') {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 void parse(char* line, char new_line[]) {
 	char* parsed;
@@ -62,6 +71,26 @@ int main(int argc, char* argv[]) {
 	char* test;
 	ssize_t buf_len;
 	pid_t pid = getpid();
+	int n = 0; /*dla getline*/
+
+	while(1) {
+		getline(buf, &n, stdin);
+
+		if(buf[0] == '!') {			/*przekaż impuls i skończ pracę*/
+			printf("%c", '!\n');
+			fflush(stdout);
+			break;
+		}
+
+		if(sign(buf[buf_len-3])) {	/*niepoliczone wyrazenie*/
+			parse(buf, new_line);
+			printf("%s", new_line);
+			fflush(stdout);
+		} else {					/*przekaz bez zmian*/
+			printf("%s", buf);
+			fflush(stdout);
+		}
+	}
 	// while(1) {
 	// 	new_line[0] = '\0';
 	// 	if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
@@ -89,12 +118,4 @@ int main(int argc, char* argv[]) {
 	// 	fprintf(stderr, "Zabijam sie\n");
 	// }
 	// return 0;
-
-	read(0, buf, BUF_SIZE-1);
-	strcat(buf, "q");
-	fprintf(stderr, "%d: %s\n", getpid(), buf);
-	write(1, buf, strlen(buf)+1);
-	//printf("%s", buf);
-	fflush(stdout);
-	
 }
