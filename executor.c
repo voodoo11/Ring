@@ -79,7 +79,6 @@ int main(int argc, char* argv[]) {
 	size_t n = 0; /*dla getline*/
 
 	while(1) {
-		buf = NULL;
 		buf_len = getline(&buf, &n, stdin);
 		//fprintf(stderr, "buf:%s\n", buf);
 		//fflush(stderr);
@@ -99,7 +98,7 @@ int main(int argc, char* argv[]) {
 			printf("%s", buf);
 			fflush(stdout);
 		}
-		
+		//free(buf);
 	}
 
 	// return 0;

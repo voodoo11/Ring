@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
 	do {
 		/*załadowanie maksymalnej ilości wierszy do pierścienia*/
-		while(loaded_lines < size_of_ring) {
+		while(loaded_lines < size_of_ring && line_count <= lines_number) {
 			read_line(input_fd, &line);
 			fprintf(stderr, "wczytana linia:%s\n", line);
 			fflush(stderr);
@@ -121,9 +121,9 @@ int main(int argc, char* argv[]) {
 	 	buf = NULL;
 	 	buf_len = getline(&buf, &n, stdin);
 
-		if(!sign(buf[buf_len-2])) {				/*jeśli wyrażenie jest już obliczone*/
+		if(!sign(buf[buf_len-2]) && buf[0] != '!') {				/*jeśli wyrażenie jest już obliczone*/
 			//write_to_file(output_fd, buf);
-			fprintf(stderr, "wynik: %s\n", buf);
+			fprintf(stderr, "wynik: %s", buf);
 			fflush(stderr);
 			--loaded_lines;
 			++writed_lines;
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
 	 	}
 
 	} 
-	while(buf[buf_len-2] != '!');
+	while(buf[0] != '!');
 
 
 
