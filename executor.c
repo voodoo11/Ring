@@ -25,7 +25,12 @@ void parse(char* line, char new_line[]) {
 	char res[BUF_SIZE];
 	int a, b, c;
 
-	parsed = strtok(line, " \n");
+	parsed = strtok(line, ":");
+	strcpy(new_line, parsed);
+	strcat(new_line, ":");
+	//fprintf(stderr, "%s\n", new_line);
+	//fflush(stderr);
+	parsed = strtok(NULL, " \n");
 	first = parsed;
 	parsed = strtok(NULL, " \n");
 	second = parsed;
@@ -66,56 +71,36 @@ void parse(char* line, char new_line[]) {
 }
 
 int main(int argc, char* argv[]) {
-	char buf[BUF_SIZE];
+	char* buf = NULL;
 	char new_line[BUF_SIZE];
 	char* test;
 	ssize_t buf_len;
 	pid_t pid = getpid();
-	int n = 0; /*dla getline*/
+	size_t n = 0; /*dla getline*/
 
 	while(1) {
-		getline(buf, &n, stdin);
-
+		buf = NULL;
+		buf_len = getline(&buf, &n, stdin);
+		//fprintf(stderr, "buf:%s\n", buf);
+		//fflush(stderr);
 		if(buf[0] == '!') {			/*przekaż impuls i skończ pracę*/
-			printf("%c", '!\n');
-			fflush(stdout);
-			break;
+		 	printf("!\n");
+		 	fflush(stdout);
+		 	break;
 		}
 
-		if(sign(buf[buf_len-3])) {	/*niepoliczone wyrazenie*/
+		if(sign(buf[buf_len-2])) {	/*niepoliczone wyrazenie*/
 			parse(buf, new_line);
+			//fprintf(stderr, "new_line %d: %s\n", pid, new_line);
+			//fflush(stderr);
 			printf("%s", new_line);
 			fflush(stdout);
 		} else {					/*przekaz bez zmian*/
 			printf("%s", buf);
 			fflush(stdout);
 		}
+		
 	}
-	// while(1) {
-	// 	new_line[0] = '\0';
-	// 	if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
-	// 		syserr("read from 0");
-	// 	}
-	// 	if(buf[buf_len-1] == '!') {
-	// 		break;
-	// 	}
-	// 	//fprintf(stderr, "pid: %d ----> buf_len %d, ostatnim znakiem jest %c\n", pid, buf_len, buf[buf_len-3] );
-	// 	if(buf[buf_len-3] == '+' || buf[buf_len-3] == '-' || buf[buf_len-3] == '*' || buf[buf_len-3] == '/') {
-	// 		parse(buf, new_line);
-	// 		if((write(1, new_line, strlen(new_line)+1)) == -1) {
-	// 			syserr("read from 0");
-	// 		}
-	// 	} else {
-	// 		if((write(1, buf, strlen(buf)+1)) == -1) {
-	// 			syserr("read from 0");
-	// 		}
-	// 	}
-	// }
-	
-	// if((write(1, "!", 1)) == -1) {
-	// 	syserr("Error in killing babies");
-	// } else {
-	// 	fprintf(stderr, "Zabijam sie\n");
-	// }
+
 	// return 0;
 }

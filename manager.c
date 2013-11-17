@@ -9,14 +9,14 @@
 
 #define BUF_SIZE 1024
 
-void read_line(int* input_fd, char line[]) {
+void read_line(FILE* input_fd, char** line) {
 	size_t len = 0;
-	line = NULL;
+	free(*line);
 
 	getline(line, &len, input_fd);
 }
 
-void write_to_file(int* output_fd, char line[]) {
+void write_to_file(FILE* output_fd, char line[]) {
 
 }
 
@@ -34,13 +34,13 @@ int main(int argc, char* argv[]) {
 	int size_of_ring = atoi(argv[1]);
 	int i;
 	int buf_len;
-	int n = 0;			/*dla getline*/
-	int line_count = 0;
+	size_t n = 0;			/*dla getline*/
+	int line_count = 1;
 	int lines_number;
 	int loaded_lines = 0;
 	int writed_lines = 0;
-	char buf[BUF_SIZE];
-	char line[BUF_SIZE];
+	char* buf = NULL;
+	char* line = NULL;
 	char input_file[] = "DATA/in";
 	char output_file[] = "DATA/out";
 
@@ -84,50 +84,64 @@ int main(int argc, char* argv[]) {
 
 
 	/*otwarcie plików*/
-	input_fd = fopen(input_file, "r");
+	FILE* input_fd = fopen(input_file, "r");
 	if(input_fd == NULL) {
 		syserr("Error in open input file");
 	}
 
-	output_fd = fopen(output_file, "w");
+	FILE* output_fd = fopen(output_file, "w");
 	if(output_fd == NULL) {
-		seserr("Error in open output file");
+		syserr("Error in open output file");
 	}
 	/*
 	TODO wczytaj pierwsza linie i ustaw numerek jako lines_number
 	*/
+	read_line(input_fd, &line);
+	lines_number = atoi(line);
+	//fprintf(stderr, "pierwsza linia:%s\n", line);
+	//fflush(stderr);
+
+/*	printf("kutwa");
+	fflush(stdout);
+	wait(0);*/
 
 	do {
 		/*załadowanie maksymalnej ilości wierszy do pierścienia*/
-		while(loaded_lines <= size_of_ring) {
-			read_line(input_fd, line);
-			printf("%d:%s", line_count, line);
+		while(loaded_lines < size_of_ring) {
+			read_line(input_fd, &line);
+			fprintf(stderr, "wczytana linia:%s\n", line);
+			fflush(stderr);
+			printf("%d:%s", line_count,line);
 			fflush(stdout);
 			++loaded_lines;
+			++line_count;
 		}
 
-		/*oczekiwanie na wynik*/
-		buf == NULL;
-		getline(buf, &n, stdin);
+	 	/*oczekiwanie na wynik*/
+	 	buf = NULL;
+	 	buf_len = getline(&buf, &n, stdin);
 
-		if(!sign(buf[buf_len-3])) {				/*jeśli wyrażenie jest już obliczone*/
+		if(!sign(buf[buf_len-2])) {				/*jeśli wyrażenie jest już obliczone*/
 			//write_to_file(output_fd, buf);
-			fprintf(stderr, "%s\n", buf);
+			fprintf(stderr, "wynik: %s\n", buf);
 			fflush(stderr);
-			--loaded_line1s;
+			--loaded_lines;
 			++writed_lines;
-		} else {								/*przekazanie dalej*/
-			printf("%s", buf);
-			fflush(stdout);
-		}
+	 	} else {								/*przekazanie dalej*/
+	 		printf("%s", buf);
+	 		fflush(stdout);
+	 	}
 
-		if(writed_lines == lines_number) {
-			printf("%s", "!\n");
-			fflush(stdout);
-		}
+	 	if(writed_lines == lines_number) {
+	 		printf("!\n");
+	 		fflush(stdout);
+	 	}
 
 	} 
-	while(buf[buf_len-3] != '!');
+	while(buf[buf_len-2] != '!');
+
+
+
 
 
 /*	write(1, "chuj", 5);
