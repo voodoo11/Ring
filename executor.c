@@ -62,27 +62,39 @@ int main(int argc, char* argv[]) {
 	char* test;
 	ssize_t buf_len;
 	pid_t pid = getpid();
-	while(1) {
-		new_line[0] = '\0';
-		if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
-			syserr("read from 0");
-		}
-		//fprintf(stderr, "pid: %d ----> buf_len %d, ostatnim znakiem jest %c\n", pid, buf_len, buf[buf_len-3] );
-		if(buf[buf_len-3] == '+' || buf[buf_len-3] == '-' || buf[buf_len-3] == '*' || buf[buf_len-3] == '/') {
-			parse(buf, new_line);
-			if((write(1, new_line, strlen(new_line)+1)) == -1) {
-				syserr("read from 0");
-			}
-		} else {
-			if((write(1, buf, strlen(buf)+1)) == -1) {
-				syserr("read from 0");
-			}
-		}
-
-	}
+	// while(1) {
+	// 	new_line[0] = '\0';
+	// 	if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
+	// 		syserr("read from 0");
+	// 	}
+	// 	if(buf[buf_len-1] == '!') {
+	// 		break;
+	// 	}
+	// 	//fprintf(stderr, "pid: %d ----> buf_len %d, ostatnim znakiem jest %c\n", pid, buf_len, buf[buf_len-3] );
+	// 	if(buf[buf_len-3] == '+' || buf[buf_len-3] == '-' || buf[buf_len-3] == '*' || buf[buf_len-3] == '/') {
+	// 		parse(buf, new_line);
+	// 		if((write(1, new_line, strlen(new_line)+1)) == -1) {
+	// 			syserr("read from 0");
+	// 		}
+	// 	} else {
+	// 		if((write(1, buf, strlen(buf)+1)) == -1) {
+	// 			syserr("read from 0");
+	// 		}
+	// 	}
+	// }
 	
-	if((write(1, "!", 1)) == -1) {
-		syserr("Error in killing babies");
-	}
-	return 0;
+	// if((write(1, "!", 1)) == -1) {
+	// 	syserr("Error in killing babies");
+	// } else {
+	// 	fprintf(stderr, "Zabijam sie\n");
+	// }
+	// return 0;
+
+	read(0, buf, BUF_SIZE-1);
+	strcat(buf, "q");
+	fprintf(stderr, "%d: %s\n", getpid(), buf);
+	write(1, buf, strlen(buf)+1);
+	//printf("%s", buf);
+	fflush(stdout);
+	
 }
