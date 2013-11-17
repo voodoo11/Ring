@@ -27,9 +27,7 @@ void parse(char* line, char new_line[]) {
 
 	parsed = strtok(line, ":");
 	strcpy(new_line, parsed);
-	strcat(new_line, ":");
-	//fprintf(stderr, "%s\n", new_line);
-	//fflush(stderr);
+	strcat(new_line, ": ");
 	parsed = strtok(NULL, " \n");
 	first = parsed;
 	parsed = strtok(NULL, " \n");
@@ -80,8 +78,6 @@ int main(int argc, char* argv[]) {
 
 	while(1) {
 		buf_len = getline(&buf, &n, stdin);
-		//fprintf(stderr, "buf:%s\n", buf);
-		//fflush(stderr);
 		if(buf[0] == '!') {			/*przekaż impuls i skończ pracę*/
 		 	printf("!\n");
 		 	fflush(stdout);
@@ -90,16 +86,14 @@ int main(int argc, char* argv[]) {
 
 		if(sign(buf[buf_len-2])) {	/*niepoliczone wyrazenie*/
 			parse(buf, new_line);
-			//fprintf(stderr, "new_line %d: %s\n", pid, new_line);
-			//fflush(stderr);
 			printf("%s", new_line);
 			fflush(stdout);
 		} else {					/*przekaz bez zmian*/
 			printf("%s", buf);
 			fflush(stdout);
 		}
-		//free(buf);
 	}
 
-	// return 0;
+	free(buf);
+	return 0;
 }

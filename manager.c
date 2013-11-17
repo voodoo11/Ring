@@ -16,10 +16,6 @@ void read_line(FILE* input_fd, char** line) {
 	getline(line, &len, input_fd);
 }
 
-void write_to_file(FILE* output_fd, char line[]) {
-
-}
-
 int sign(char c) {
 	if(c == '+' || c == '-' || c == '*' || c == '/') {
 		return 1;
@@ -31,18 +27,25 @@ int sign(char c) {
 int main(int argc, char* argv[]) {
 	int pipe_out[2];	/*rura do najbliższego sąsiada*/
 	int pipe_in[2];		/*rura do poprzedniego sąsiada*/
-	int size_of_ring = atoi(argv[1]);
+	int size_of_ring;
 	int i;
 	int buf_len;
 	size_t n = 0;			/*dla getline*/
 	int line_count = 1;
 	int lines_number;
+	char asd[] = {'a', 'b'};
 	int loaded_lines = 0;
 	int writed_lines = 0;
 	char* buf = NULL;
 	char* line = NULL;
 	char input_file[] = "DATA/in";
 	char output_file[] = "DATA/out";
+
+	if (argc < 3) {
+		syserr("Too few arguments");
+	}
+
+	size_of_ring = atoi(argv[1]);
 
 	if(pipe(pipe_out) == -1) syserr("E: pipe_out");
 	if((dup2(pipe_out[0], STDIN_FILENO)) == -1) syserr("MANAGER: Error in dup pipe_out[0]");
@@ -93,24 +96,14 @@ int main(int argc, char* argv[]) {
 	if(output_fd == NULL) {
 		syserr("Error in open output file");
 	}
-	/*
-	TODO wczytaj pierwsza linie i ustaw numerek jako lines_number
-	*/
+
 	read_line(input_fd, &line);
 	lines_number = atoi(line);
-	//fprintf(stderr, "pierwsza linia:%s\n", line);
-	//fflush(stderr);
-
-/*	printf("kutwa");
-	fflush(stdout);
-	wait(0);*/
 
 	do {
 		/*załadowanie maksymalnej ilości wierszy do pierścienia*/
 		while(loaded_lines < size_of_ring && line_count <= lines_number) {
 			read_line(input_fd, &line);
-			fprintf(stderr, "wczytana linia:%s\n", line);
-			fflush(stderr);
 			printf("%d:%s", line_count,line);
 			fflush(stdout);
 			++loaded_lines;
@@ -118,16 +111,14 @@ int main(int argc, char* argv[]) {
 		}
 
 	 	/*oczekiwanie na wynik*/
-	 	buf = NULL;
 	 	buf_len = getline(&buf, &n, stdin);
 
-		if(!sign(buf[buf_len-2]) && buf[0] != '!') {				/*jeśli wyrażenie jest już obliczone*/
-			//write_to_file(output_fd, buf);
-			fprintf(stderr, "wynik: %s", buf);
-			fflush(stderr);
+		if(!sign(buf[buf_len-2]) && buf[0] != '!') {	/*jeśli wyrażenie jest już obliczone*/
+			fprintf(output_fd, "%s", buf);
+			fflush(output_fd);
 			--loaded_lines;
 			++writed_lines;
-	 	} else {								/*przekazanie dalej*/
+	 	} else {										/*przekazanie dalej*/
 	 		printf("%s", buf);
 	 		fflush(stdout);
 	 	}
@@ -140,44 +131,10 @@ int main(int argc, char* argv[]) {
 	} 
 	while(buf[0] != '!');
 
+	free(buf);
 
-
-
-
-/*	write(1, "chuj", 5);
-	read(0, buf, BUF_SIZE-1);
-	fprintf(stderr, "buf: %s\n", buf);*/
-	// 	read_line("DATA/in", &line);
-// /*	printf("wczytana linia:%s", line);
-// 	printf("rozmiar: %d\n", strlen(line));*/
-// 	write(0, line, strlen(line)+1);
-
-// 	if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
-// 			syserr("Error in read from last child\n");
-// 	}
-// 	while(buf[buf_len-3] == '+' || buf[buf_len-3] == '-' || buf[buf_len-3] == '*' || buf[buf_len-3] == '/') {
-// 		if((write(0, buf, strlen(buf)+1)) == -1) {
-// 			syserr("Error in write to child");
-// 		}
-// 		if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
-// 			syserr("Error in read from last child\n");
-// 		}
-
-// 	}
-// 	if((write(1, "!", 1)) == -1) {
-// 		syserr("MANAGER: Error in killing babies");
-// 	}
-/*
-	printf("znak: %c\n", buf[buf_len-2]);
-
-	printf("len: %d \n", buf_len);*/
-
-	//printf("\nbuf:%s!", buf);
-	//wait(0);
-
-	// char chuj[100] = "abcd";
-	// int a,b;7
-
+	fclose(input_fd);
+	fclose(output_fd);
 	return 0;
 
 }	/*main*/
