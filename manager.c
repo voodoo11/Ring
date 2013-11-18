@@ -49,10 +49,6 @@ int main(int argc, char* argv[]) {
 	strcat(input_file, argv[2]);
 	strcat(output_file, argv[3]);
 
-	fprintf(stderr, "in: %s\n", input_file);
-	fprintf(stderr, "out: %s\n", output_file);
-	fflush(stderr);
-
 	/*tworzenie pierscienia*/
 	if(pipe(pipe_out) == -1) syserr("E: pipe_out");
 	if((dup2(pipe_out[0], STDIN_FILENO)) == -1) syserr("MANAGER: Error in dup pipe_out[0]");
@@ -117,7 +113,7 @@ int main(int argc, char* argv[]) {
 	if(output_fd == NULL) {
 		syserr("Error in open output file");
 	}
-
+	
 	line = NULL;
 	getline(&lines_number_s, &n, input_fd);
 	lines_number = atoi(strtok(lines_number_s,"\n"));
@@ -150,12 +146,14 @@ int main(int argc, char* argv[]) {
 	 		fflush(stdout);
 	 	}
 
-	 	/*przekazanie znaku konca pracy*/
-	 	if(writed_lines == lines_number) {
-	 		printf("!\n");
-	 		fflush(stdout);
-	 	}	
-	} while(buf[0] != '!');
+	 		
+	} while(writed_lines != lines_number);
+
+	/*przekazanie znaku konca pracy*/
+ 	if(writed_lines == lines_number) {
+ 		printf("!\n");
+ 		fflush(stdout);
+ 	}
 
 	free(buf);
 	if(fclose(input_fd) == EOF) {
