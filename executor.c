@@ -22,6 +22,8 @@ void parse(char* line, char new_line[]) {
 	char* parsed;
 	char* first;
 	char* second;
+	char a_s[15];
+	char b_s[15];
 	char res[BUF_SIZE];
 	int a, b, c;
 
@@ -36,15 +38,17 @@ void parse(char* line, char new_line[]) {
 	parsed = strtok(NULL, " \n");
 	while(parsed != NULL && strcmp(parsed, "*") != 0 && strcmp(parsed, "-") != 0 && 
 			strcmp(parsed, "+") != 0 && strcmp(parsed, "/") != 0) {
+		
 		strcat(new_line, first);
 		strcat(new_line, " ");
 		first = second; 
 		second = parsed;
 		parsed = strtok(NULL, " \n");
 	}
-
-	a = atoi(first); 
-	b = atoi(second);
+	strcpy(a_s, first);
+	strcpy(b_s, second);
+	a = atoi(a_s); 
+	b = atoi(b_s);
 
 	if(strcmp(parsed, "+") == 0) {
 		c = a + b;
@@ -65,22 +69,22 @@ void parse(char* line, char new_line[]) {
 		strcat(new_line, parsed);		
 		parsed = strtok(NULL, " \n");
 	}
-	strcat(new_line, "\n");
+	strcat(new_line, "\n\0");
 }
 
 int main(int argc, char* argv[]) {
-	char* buf = NULL;
+	char* buf;
 	char new_line[BUF_SIZE];
-	char* test;
 	ssize_t buf_len;
-	pid_t pid = getpid();
 	size_t n = 0; /*dla getline*/
 
 	while(1) {
+		buf = NULL;
 		buf_len = getline(&buf, &n, stdin);
-		if(buf[0] == '!') {			/*przekaż impuls i skończ pracę*/
+		if(buf[0] == '!') {			/*przekaż koniec i skończ pracę*/
 		 	printf("!\n");
 		 	fflush(stdout);
+		 	free(buf);
 		 	break;
 		}
 
@@ -92,8 +96,8 @@ int main(int argc, char* argv[]) {
 			printf("%s", buf);
 			fflush(stdout);
 		}
+		free(buf);
 	}
 
-	free(buf);
 	return 0;
 }
