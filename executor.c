@@ -6,16 +6,27 @@
 #include <fcntl.h>
 #include <string.h>
 #include "err.h"
+#include "common.h"
 
 #define NUM_LENGTH 15
 #define KILL_SIGN "!\n"
 
-int math_sign(char c) {
-	if(c == '+' || c == '-' || c == '*' || c == '/') {
-		return 1;
-	} else {
-		return 0;
+int calculate(int* a, int* b, char sign) {
+	/*wykonanie dzialania*/
+	if(sign == '+') {
+		return *a + *b;
+
+	} else if(sign == '-') {
+		return *a - *b;
+
+	} else if(sign == '*') {
+		return *a * *b;
+
+	} else if(sign == '/') {
+		return *a / *b;
+	
 	}
+	return 0;
 }
 
 void parse(char* line, char new_line[]) {
@@ -38,8 +49,7 @@ void parse(char* line, char new_line[]) {
 
 	/*szukanie pierwszego operatora i liczb do policzenia*/
 	parsed = strtok(NULL, " \n");
-	while(parsed != NULL && strcmp(parsed, "*") != 0 && strcmp(parsed, "-") != 0 && 
-			strcmp(parsed, "+") != 0 && strcmp(parsed, "/") != 0) {
+	while(parsed != NULL && !math_sign(*parsed)) {
 
 		strcat(new_line, first);
 		strcat(new_line, " ");
@@ -50,17 +60,7 @@ void parse(char* line, char new_line[]) {
 
 	a = atoi(first); 
 	b = atoi(second);
-
-	/*wykonanie dzialania*/
-	if(strcmp(parsed, "+") == 0) {
-		c = a + b;
-	} else if(strcmp(parsed, "-") == 0) {
-		c = a - b;
-	} else if(strcmp(parsed, "*") == 0) {
-		c = a * b;
-	} else if(strcmp(parsed, "/") == 0) {
-		c = a / b;
-	}
+	c = calculate(&a, &b, *parsed);
 
 	sprintf(res, "%d", c);
 	strcat(new_line, res);

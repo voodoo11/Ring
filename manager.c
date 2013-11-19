@@ -6,18 +6,10 @@
 #include <fcntl.h>
 #include <string.h>
 #include "err.h"
+#include "common.h"
 
 #define KILL_SIGN "!\n"
 #define FILE_NAME_LEN 100
-
-/*sprawdza czy znak jest operatorem matematycznym*/
-int math_sign(char c) {
-	if(c == '+' || c == '-' || c == '*' || c == '/') {
-		return 1;
-	} else {
-		return 0;
-	}
-}
 
 int main(int argc, char* argv[]) {
 	size_t n = 0;		/*dla getline*/
@@ -149,12 +141,12 @@ int main(int argc, char* argv[]) {
 			free(line);
 		}
 
-		free(buf);
+		
 		buf = NULL;
 	 	/*oczekiwanie na wynik*/
 	 	buf_len = getline(&buf, &n, stdin);
 
-		if(!math_sign(buf[buf_len-2]) && buf[0] != '!') {	/*jesli wyrazenie jest juz obliczone*/
+		if(!math_sign(buf[buf_len-2])) {	/*jesli wyrazenie jest juz obliczone*/
 			fprintf(output_fd, "%s", buf);
 			fflush(output_fd);
 			--loaded_lines;
@@ -163,10 +155,9 @@ int main(int argc, char* argv[]) {
 	 	} else {	/*przekazanie dalej*/
 	 		printf("%s", buf);
 	 		fflush(stdout);
-	 	}	
+	 	}
+	 	free(buf);
 	} while(writed_lines != lines_number);
-
-	free(buf);
 
 	/*przekazanie znaku konca pracy*/
  	if(writed_lines == lines_number) {
