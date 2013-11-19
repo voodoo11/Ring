@@ -50,8 +50,12 @@ int main(int argc, char* argv[]) {
 	strcat(output_file, argv[3]);
 
 	/*tworzenie pierscienia*/
-	if(pipe(pipe_out) == -1) syserr("E: pipe_out");
-	if((dup2(pipe_out[0], STDIN_FILENO)) == -1) syserr("MANAGER: Error in dup pipe_out[0]");
+	if(pipe(pipe_out) == -1) {
+		syserr("E: pipe_out");
+	}
+	if((dup2(pipe_out[0], STDIN_FILENO)) == -1){
+		syserr("MANAGER: Error in dup pipe_out[0]");
+	}
 
 	for(i = 0; i < size_of_ring; i++) {
 		if(pipe(pipe_in) == -1) syserr("E: pipe_in\n");
@@ -113,7 +117,7 @@ int main(int argc, char* argv[]) {
 	if(output_fd == NULL) {
 		syserr("Error in open output file");
 	}
-	
+
 	line = NULL;
 	getline(&lines_number_s, &n, input_fd);
 	lines_number = atoi(strtok(lines_number_s,"\n"));
@@ -155,12 +159,19 @@ int main(int argc, char* argv[]) {
  		fflush(stdout);
  	}
 
+ 	/*zamkniecie plikow*/
 	free(buf);
 	if(fclose(input_fd) == EOF) {
 		syserr("Error in close input_fd");
 	}
 	if(fclose(output_fd) == EOF) {
 		syserr("Error in close output_fd");
+	}
+
+	for(i=0; i<size_of_ring; i++) {
+		if(wait(0) == -1) {
+			syserr("Error in wait");
+		}
 	}
 
 	return 0;
