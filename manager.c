@@ -50,11 +50,25 @@ int main(int argc, char* argv[]) {
 	if(pipe(pipe_out) == -1) {
 		syserr("Erro in creating pipe_out\n");
 	}
+
+	/*zduplikowanie pipe'a na STDOUT,
+	będzie nadpisywany w forkach przez odpowiedzi*/
+	if((dup2(pipe_out[1], STDOUT_FILENO)) == -1) {
+		syserr("MANAGER: Error in dup pipe_out[1]\n");
+	}
 	/*zduplikowanie pipe'a na STDIN, ktory bedzie dziedziczony przez
 	pierwszego egzekutora i podmieniany za kazdym obrotem petli przez
 	rodzica*/
-	if((dup2(pipe_out[0], STDIN_FILENO)) == -1){
+	if((dup2(pipe_out[0], STDIN_FILENO)) == -1) {
 		syserr("MANAGER: Error in dup pipe_out[0]\n");
+	}
+
+	/*zamkniecie niepotrzebynch pipe'ow*/
+	if(close(pipe_out[0]) == -1) {
+		syserr("MANAGER: Error in close pipe_out[0]\n");
+	}
+	if(close(pipe_out[1]) == -1) {
+		syserr("MANAGER: Error in close pipe_out[1]\n");
 	}
 
 	/*tworzenie pierscienia*/
@@ -69,17 +83,13 @@ int main(int argc, char* argv[]) {
 				if((dup2(pipe_in[1], STDOUT_FILENO)) == -1 ) {
 					syserr("Fork: Error in pipe in dup\n");
 				}
-				if(close(pipe_out[0]) == -1) {
-					syserr("FORK: Error in close pipe_out[0]\n");
-				}
+				
+				/*zamkniecie niepotrzebnych pipe'ow*/
 				if(close(pipe_in[0]) == -1) {
 					syserr("FORK: Error in close pipe_in[0]\n");
 				}
 				if(close(pipe_in[1]) == -1) {
 					syserr("FORK: Error in close pipe_in[1]\n");
-				}
-				if(close(pipe_out[1]) == -1) {
-					syserr("FORK: Error in close pipe_out[1]\n");
 				}
 
 				execl("./executor", "executor\n", (char *) 0);
@@ -98,19 +108,6 @@ int main(int argc, char* argv[]) {
 					syserr("PARENT: Error in close pipe_in[0]\n");
 				}
 		}
-	}
-
-	/*zduplikowanie deskryptora wyjscia do pierwszego egzekutora*/
-	if((dup2(pipe_out[1], STDOUT_FILENO)) == -1) {
-		syserr("MANAGER: error in dup pipe_out[1]\n");
-	}
-
-	/*zamkniecie niepotrzebnych deskryptorow*/
-	if(close(pipe_out[0]) == -1) {
-		syserr("MANAGER: Error in close pipe_out[0]\n");
-	}
-	if(close(pipe_out[1]) == -1) {
-		syserr("MANAGER: Error in close pipe_out[1]\n");
 	}
 
 	/*otwarcie plikow*/
