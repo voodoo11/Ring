@@ -1,14 +1,17 @@
-#include <sys/types.h>
+/***************************************
+*	Jakub Kowalski
+*	nr indeksu: 334674
+*	mail: jk334674@students.mimuw.edu.pl
+****************************************/
+
 #include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 #include "err.h"
 #include "common.h"
 
-#define KILL_SIGN "!\n"
 #define FILE_NAME_LEN 100
 
 int main(int argc, char* argv[]) {
@@ -27,8 +30,8 @@ int main(int argc, char* argv[]) {
 	char data_dir[] = "DATA/";
 	char input_file[FILE_NAME_LEN];
 	char output_file[FILE_NAME_LEN];
-	FILE* input_fd;
-	FILE* output_fd;
+	FILE* input_fp;
+	FILE* output_fp;
 
 	/*sprawdzenie ilosci argumentow*/
 	if (argc <= 3) {
@@ -72,7 +75,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	/*tworzenie pierscienia*/
-	for(i = 0; i < size_of_ring; i++) {
+	for(i = 0; i < size_of_ring; ++i) {
 		if(pipe(pipe_in) == -1) syserr("Error in creating pipe_in\n");
 		switch(fork()) {
 			case -1:
@@ -83,8 +86,6 @@ int main(int argc, char* argv[]) {
 				if((dup2(pipe_in[1], STDOUT_FILENO)) == -1 ) {
 					syserr("Fork: Error in pipe in dup\n");
 				}
-				
-				/*zamkniecie niepotrzebnych pipe'ow*/
 				if(close(pipe_in[0]) == -1) {
 					syserr("FORK: Error in close pipe_in[0]\n");
 				}
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
 					syserr("FORK: Error in close pipe_in[1]\n");
 				}
 
-				execl("./executor", "executor\n", (char *) 0);
+				execl("./executor", "executor", (char *) 0);
 				syserr("Error in execl(executor).\n");
 
 			default:
@@ -111,26 +112,27 @@ int main(int argc, char* argv[]) {
 	}
 
 	/*otwarcie plikow*/
-	input_fd = fopen(input_file, "r");
-	if(input_fd == NULL) {
+	input_fp = fopen(input_file, "r");
+	if(input_fp == NULL) {
 		syserr("Error in open input file\n");
 	}
 
-	output_fd = fopen(output_file, "w");
-	if(output_fd == NULL) {
+	output_fp = fopen(output_file, "w");
+	if(output_fp == NULL) {
 		syserr("Error in open output file\n");
 	}
 
 	/*wczytanie pierwszej linii z pliku*/
-	getline(&line, &n, input_fd);
+	getline(&line, &n, input_fp);
 	lines_number = atoi(strtok(line,"\n"));
 	free(line);
 
+	/*odczytywanie, przesylanie i zapisywanie danych*/
 	do {
 		/*zaladowanie maksymalnej ilosci wierszy do pierscienia*/
-		while(loaded_lines < size_of_ring && lines_count <= lines_number) {
+		while(loaded_lines <= size_of_ring && lines_count <= lines_number) {
 			line = NULL;
-			getline(&line, &n, input_fd);
+			getline(&line, &n, input_fp);
 			printf("%d: %s", lines_count,line);
 			fflush(stdout);
 			++loaded_lines;
@@ -138,14 +140,15 @@ int main(int argc, char* argv[]) {
 			free(line);
 		}
 
-		
 		buf = NULL;
 	 	/*oczekiwanie na wynik*/
-	 	buf_len = getline(&buf, &n, stdin);
+	 	if((buf_len = getline(&buf, &n, stdin)) < 1) {
+	 		syserr("MANAGER: Blad oczytu z STDIN");
+	 	}
 
 		if(!math_sign(buf[buf_len-2])) {	/*jesli wyrazenie jest juz obliczone*/
-			fprintf(output_fd, "%s", buf);
-			fflush(output_fd);
+			fprintf(output_fp, "%s", buf);
+			fflush(output_fp);
 			--loaded_lines;
 			++writed_lines;
 
@@ -163,15 +166,15 @@ int main(int argc, char* argv[]) {
  	}
 
  	/*zamkniecie plikow*/
-	if(fclose(input_fd) == EOF) {
-		syserr("Error in close input_fd\n");
+	if(fclose(input_fp) == EOF) {
+		syserr("Error in close input_fp\n");
 	}
-	if(fclose(output_fd) == EOF) {
-		syserr("Error in close output_fd\n");
+	if(fclose(output_fp) == EOF) {
+		syserr("Error in close output_fp\n");
 	}
 
 	/*czekanie na dzieci*/
-	for(i=0; i<size_of_ring; i++) {
+	for(i=0; i<size_of_ring; ++i) {
 		if(wait(0) == -1) {
 			syserr("Error in wait\n");
 		}

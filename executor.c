@@ -1,34 +1,36 @@
-#include <sys/types.h>
-#include <sys/stat.h>
+/***************************************
+*	Jakub Kowalski
+*	nr indeksu: 334674
+*	mail: jk334674@students.mimuw.edu.pl
+****************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 #include "err.h"
 #include "common.h"
 
-#define NUM_LENGTH 15
-#define KILL_SIGN "!\n"
+#define NUM_LENGTH 20
 
-int calculate(int* a, int* b, char sign) {
-	/*wykonanie dzialania*/
+/*wykonanie dzialania na podstawie znaku*/
+int calculate(int a, int b, char sign) {
 	if(sign == '+') {
-		return *a + *b;
+		return a + b;
 
 	} else if(sign == '-') {
-		return *a - *b;
+		return a - b;
 
 	} else if(sign == '*') {
-		return *a * *b;
+		return a * b;
 
 	} else if(sign == '/') {
-		return *a / *b;
+		return a / b;
 	
 	}
 	return 0;
 }
 
+/*przetworzenie danych i wykonanie jednego obliczenia*/
 void parse(char* line, char new_line[]) {
 	char* parsed;
 	char* first;
@@ -50,7 +52,6 @@ void parse(char* line, char new_line[]) {
 	/*szukanie pierwszego operatora i liczb do policzenia*/
 	parsed = strtok(NULL, " \n");
 	while(parsed != NULL && !math_sign(*parsed)) {
-
 		strcat(new_line, first);
 		strcat(new_line, " ");
 		first = second; 
@@ -60,7 +61,7 @@ void parse(char* line, char new_line[]) {
 
 	a = atoi(first); 
 	b = atoi(second);
-	c = calculate(&a, &b, *parsed);
+	c = calculate(a, b, *parsed);
 
 	sprintf(res, "%d", c);
 	strcat(new_line, res);
@@ -82,7 +83,10 @@ int main(int argc, char* argv[]) {
 
 	while(1) {
 		buf = NULL;
-		buf_len = getline(&buf, &n, stdin);
+		/*czekanie na wyrazenie*/
+		if((buf_len = getline(&buf, &n, stdin)) < 1) {
+			syserr("EXECUTOR: Blad oczytu z STDIN");
+		}
 		if(buf[0] == '!') {			/*przekaz koniec i skończ prace*/
 		 	printf(KILL_SIGN);
 		 	fflush(stdout);

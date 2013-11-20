@@ -1,3 +1,9 @@
+/***************************************
+*	Jakub Kowalski
+*	nr indeksu: 334674
+*	mail: jk334674@students.mimuw.edu.pl
+****************************************/
+
 #include "common.h"
 
 /*sprawdza czy znak jest operatorem matematycznym*/
