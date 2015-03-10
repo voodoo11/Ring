@@ -1,29 +1,57 @@
-#include <sys/types.h>
-#include <sys/stat.h>
+/*******************************************
+*	Jakub Kowalski
+*	nr indeksu: 334674
+*	mail: jk334674@students.mimuw.edu.pl
+********************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 #include "err.h"
+#include "common.h"
 
-#define BUF_SIZE 1024
+#define NUM_LENGTH 20
 
+/*wykonanie dzialania na podstawie znaku*/
+int calculate(int a, int b, char sign) {
+	if(sign == '+') {
+		return a + b;
+
+	} else if(sign == '-') {
+		return a - b;
+
+	} else if(sign == '*') {
+		return a * b;
+
+	} else if(sign == '/') {
+		return a / b;
+	
+	}
+	return 0;
+}
+
+/*przetworzenie danych i wykonanie jednego obliczenia*/
 void parse(char* line, char new_line[]) {
 	char* parsed;
 	char* first;
 	char* second;
-	char res[BUF_SIZE];
+	char res[NUM_LENGTH];
 	int a, b, c;
 
-	parsed = strtok(line, " \n");
+	/*ominiecie numeru linii*/
+	parsed = strtok(line, ":");
+	strcpy(new_line, parsed);
+	strcat(new_line, ": ");
+
+	/*zapamietanie pierwszych dwoch znakow*/
+	parsed = strtok(NULL, " \n");
 	first = parsed;
 	parsed = strtok(NULL, " \n");
 	second = parsed;
 
+	/*szukanie pierwszego operatora i liczb do policzenia*/
 	parsed = strtok(NULL, " \n");
-	while(parsed != NULL && strcmp(parsed, "*") != 0 && strcmp(parsed, "-") != 0 && 
-			strcmp(parsed, "+") != 0 && strcmp(parsed, "/") != 0) {
+	while(parsed != NULL && !math_sign(*parsed)) {
 		strcat(new_line, first);
 		strcat(new_line, " ");
 		first = second; 
@@ -33,68 +61,50 @@ void parse(char* line, char new_line[]) {
 
 	a = atoi(first); 
 	b = atoi(second);
-
-	if(strcmp(parsed, "+") == 0) {
-		c = a + b;
-	} else if(strcmp(parsed, "-") == 0) {
-		c = a - b;
-	} else if(strcmp(parsed, "*") == 0) {
-		c = a * b;
-	} else if(strcmp(parsed, "/") == 0) {
-		c = a / b;
-	}
+	c = calculate(a, b, *parsed);
 
 	sprintf(res, "%d", c);
 	strcat(new_line, res);
 
+	/*dopisanie reszty linii do nowego wyrazenia*/
 	parsed = strtok(NULL, " \n");
 	while(parsed != NULL) {
 		strcat(new_line, " ");
-		strcat(new_line, parsed);		
+		strcat(new_line, parsed);
 		parsed = strtok(NULL, " \n");
 	}
 	strcat(new_line, "\n");
 }
 
 int main(int argc, char* argv[]) {
-	char buf[BUF_SIZE];
-	char new_line[BUF_SIZE];
-	char* test;
+	char* buf;
 	ssize_t buf_len;
-	pid_t pid = getpid();
-	// while(1) {
-	// 	new_line[0] = '\0';
-	// 	if((buf_len = read(0, buf, BUF_SIZE-1)) == -1) {
-	// 		syserr("read from 0");
-	// 	}
-	// 	if(buf[buf_len-1] == '!') {
-	// 		break;
-	// 	}
-	// 	//fprintf(stderr, "pid: %d ----> buf_len %d, ostatnim znakiem jest %c\n", pid, buf_len, buf[buf_len-3] );
-	// 	if(buf[buf_len-3] == '+' || buf[buf_len-3] == '-' || buf[buf_len-3] == '*' || buf[buf_len-3] == '/') {
-	// 		parse(buf, new_line);
-	// 		if((write(1, new_line, strlen(new_line)+1)) == -1) {
-	// 			syserr("read from 0");
-	// 		}
-	// 	} else {
-	// 		if((write(1, buf, strlen(buf)+1)) == -1) {
-	// 			syserr("read from 0");
-	// 		}
-	// 	}
-	// }
-	
-	// if((write(1, "!", 1)) == -1) {
-	// 	syserr("Error in killing babies");
-	// } else {
-	// 	fprintf(stderr, "Zabijam sie\n");
-	// }
-	// return 0;
+	size_t n = 0; /*dla getline*/
 
-	read(0, buf, BUF_SIZE-1);
-	strcat(buf, "q");
-	fprintf(stderr, "%d: %s\n", getpid(), buf);
-	write(1, buf, strlen(buf)+1);
-	//printf("%s", buf);
-	fflush(stdout);
-	
+	while(1) {
+		buf = NULL;
+		/*czekanie na wyrazenie*/
+		if((buf_len = getline(&buf, &n, stdin)) < 1) {
+			syserr("EXECUTOR: Blad oczytu z STDIN");
+		}
+		if(buf[0] == '!') {	/*przekaz koniec i skończ prace*/
+		 	printf(KILL_SIGN);
+		 	fflush(stdout);
+		 	free(buf);
+		 	break;
+		}
+
+		if(math_sign(buf[buf_len-2])) {	/*niepoliczone wyrazenie*/
+			char new_line[buf_len];
+			parse(buf, new_line);
+			printf("%s", new_line);
+			fflush(stdout);
+		} else {	/*przekaz bez zmian*/
+			printf("%s", buf);
+			fflush(stdout);
+		}
+		free(buf);
+	}
+
+	return 0;
 }
